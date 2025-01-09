@@ -1,0 +1,20 @@
+[ req ]
+default_bits = 2048
+distinguished_name = req_distinguished_name
+prompt = no
+string_mask = utf8only
+x509_extensions = myexts
+
+[ req_distinguished_name ]
+countryName            = ES
+stateOrProvinceName    = Madrid
+localityName           = Madrid
+organizationName       = Red Hat Inc.
+commonName             = Example Kernel KMS Signing Key
+emailAddress           = ebelarte@redhat.com
+
+[ myexts ]
+basicConstraints=critical,CA:FALSE
+keyUsage=digitalSignature
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid
