@@ -4,6 +4,7 @@ ARG DRIVER_IMAGE
 ARG AWS_AUTH_SECRET
 
 FROM ${DTK_IMAGE} as dtk
+USER root
 ARG DRIVER_REPO
 WORKDIR /home/builder
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
