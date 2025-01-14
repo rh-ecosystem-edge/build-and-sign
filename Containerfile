@@ -7,7 +7,8 @@ FROM ${DTK_IMAGE} as dtk
 ARG DRIVER_REPO
 WORKDIR /home/builder
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
-RUN git clone $DRIVER_REPO && cd $(basename $DRIVER_REPO .git) && \
+RUN git clone $DRIVER_REPO && \
+    cd $(basename $DRIVER_REPO .git) && \
     /home/builder/build-commands.sh
 RUN source /etc/driver-toolkit-release.sh && \
     cp -p /usr/src/kernels/$KERNEL_VERSION/scripts/sign-file /usr/local/bin/sign-file
