@@ -4,11 +4,15 @@ ARG DRIVER_IMAGE
 ARG AWS_AUTH_SECRET
 
 FROM ${DTK_IMAGE} as dtk
+USER root
 ARG DRIVER_REPO
 WORKDIR /home/builder
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
-RUN git clone $DRIVER_REPO && cd $(basename $DRIVER_REPO .git) && \
+RUN git clone $DRIVER_REPO && \
+    cd $(basename $DRIVER_REPO .git) && \
     /home/builder/build-commands.sh
+RUN source /etc/driver-toolkit-release.sh && \
+    cp -p /usr/src/kernels/$KERNEL_VERSION/scripts/sign-file /usr/local/bin/sign-file
 
 FROM ${SIGNER_SDK_IMAGE} as signer
 ARG AWS_AUTH_SECRET
@@ -17,7 +21,7 @@ ARG AWS_KMS_KEY_LABEL
 ARG GENKEY_FILE
 USER root
 COPY --from=dtk /home/builder /opt/drivers/
-COPY --from=dtk /usr/src/kernels/5.14.0-503.15.1.el9_5.x86_64/scripts/sign-file /usr/local/bin/sign-file
+COPY --chmod=0755 --from=dtk /usr/local/bin/sign-file /usr/local/bin/sign-file
 COPY --chmod=0755 set_pkcs11_engine /usr/bin/set_pkcs11_engine
 COPY ssl/x509.keygen /etc/aws-kms-pkcs11/x509.genkey
 RUN --mount=type=secret,id=${AWS_AUTH_SECRET}/AWS_KMS_TOKEN echo "export AWS_KMS_TOKEN="$(cat /run/secrets/${AWS_AUTH_SECRET}/AWS_KMS_TOKEN) >> /tmp/envfile 
