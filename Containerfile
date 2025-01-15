@@ -65,5 +65,7 @@ RUN source /tmp/envfile && \
             "$signedfile"; \
     done	   
 FROM ${DRIVER_IMAGE}
+# Install kmod just for testing purposes
+RUN dnf -y install kmod && dnf clean all && rm -rf /var/cache/yum
 COPY --from=signer /opt/drivers /opt/drivers
 
