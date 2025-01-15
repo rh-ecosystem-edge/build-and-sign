@@ -15,10 +15,10 @@ RUN if [ -n "$ADDITIONAL_BUILD_DEPS" ]; then \
        rm -rf /var/cache/yum; \
     fi
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
-RUN git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
-    cd $(basename $DRIVER_REPO .git) && \
-    /home/builder/build-commands.sh
 RUN source /etc/driver-toolkit-release.sh && \
+    git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
+    cd $(basename $DRIVER_REPO .git) && \
+    /home/builder/build-commands.sh && \
     echo $KERNEL_VERSION > /tmp/BUILD_KERNEL_VER && \
     cp -p /usr/src/kernels/$KERNEL_VERSION/scripts/sign-file /usr/local/bin/sign-file
 
