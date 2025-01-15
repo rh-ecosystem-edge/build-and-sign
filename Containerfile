@@ -1,6 +1,7 @@
 ARG DTK_IMAGE
 ARG SIGNER_SDK_IMAGE
 ARG DRIVER_IMAGE
+ARG DRIVER_VERSION
 ARG AWS_AUTH_SECRET
 
 FROM ${DTK_IMAGE} as dtk
@@ -8,7 +9,7 @@ USER root
 ARG DRIVER_REPO
 WORKDIR /home/builder
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
-RUN git clone $DRIVER_REPO && \
+RUN git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
     cd $(basename $DRIVER_REPO .git) && \
     /home/builder/build-commands.sh
 RUN source /etc/driver-toolkit-release.sh && \
