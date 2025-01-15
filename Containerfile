@@ -6,12 +6,20 @@ ARG AWS_AUTH_SECRET
 FROM ${DTK_IMAGE} as dtk
 USER root
 ARG DRIVER_REPO
+ARG DRIVER_VERSION
+ARG ADDITIONAL_BUILD_DEPS
 WORKDIR /home/builder
+RUN if [ -n "$ADDITIONAL_BUILD_DEPS" ]; then \
+       dnf -y install -- $ADDITIONAL_BUILD_DEPS && \
+       dnf clean all && \
+       rm -rf /var/cache/yum; \
+    fi
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
-RUN git clone $DRIVER_REPO && \
-    cd $(basename $DRIVER_REPO .git) && \
-    /home/builder/build-commands.sh
 RUN source /etc/driver-toolkit-release.sh && \
+    echo $KERNEL_VERSION > /tmp/BUILD_KERNEL_VER && \
+    git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
+    cd $(basename $DRIVER_REPO .git) && \
+    /home/builder/build-commands.sh && \
     cp -p /usr/src/kernels/$KERNEL_VERSION/scripts/sign-file /usr/local/bin/sign-file
 
 FROM ${SIGNER_SDK_IMAGE} as signer
@@ -21,6 +29,7 @@ ARG AWS_KMS_KEY_LABEL
 ARG GENKEY_FILE
 USER root
 COPY --from=dtk /home/builder /opt/drivers/
+COPY --from=dtk /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
 COPY --chmod=0755 --from=dtk /usr/local/bin/sign-file /usr/local/bin/sign-file
 COPY --chmod=0755 set_pkcs11_engine /usr/bin/set_pkcs11_engine
 COPY ssl/x509.keygen /etc/aws-kms-pkcs11/x509.genkey
@@ -58,5 +67,7 @@ RUN source /tmp/envfile && \
             "$signedfile"; \
     done	   
 FROM ${DRIVER_IMAGE}
+# Install kmod just for testing purposes
+RUN dnf -y install kmod && dnf clean all && rm -rf /var/cache/yum
 COPY --from=signer /opt/drivers /opt/drivers
 
