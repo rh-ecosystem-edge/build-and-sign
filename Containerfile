@@ -19,6 +19,7 @@ RUN git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
     cd $(basename $DRIVER_REPO .git) && \
     /home/builder/build-commands.sh
 RUN source /etc/driver-toolkit-release.sh && \
+    echo $KERNEL_VERSION > /tmp/BUILD_KERNEL_VER && \
     cp -p /usr/src/kernels/$KERNEL_VERSION/scripts/sign-file /usr/local/bin/sign-file
 
 FROM ${SIGNER_SDK_IMAGE} as signer
@@ -28,6 +29,7 @@ ARG AWS_KMS_KEY_LABEL
 ARG GENKEY_FILE
 USER root
 COPY --from=dtk /home/builder /opt/drivers/
+COPY --from=dtk /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
 COPY --chmod=0755 --from=dtk /usr/local/bin/sign-file /usr/local/bin/sign-file
 COPY --chmod=0755 set_pkcs11_engine /usr/bin/set_pkcs11_engine
 COPY ssl/x509.keygen /etc/aws-kms-pkcs11/x509.genkey
