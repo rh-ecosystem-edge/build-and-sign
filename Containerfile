@@ -1,12 +1,12 @@
 ARG DTK_IMAGE
 ARG SIGNER_SDK_IMAGE
 ARG DRIVER_IMAGE
-ARG DRIVER_VERSION
 ARG AWS_AUTH_SECRET
 
 FROM ${DTK_IMAGE} as dtk
 USER root
 ARG DRIVER_REPO
+ARG DRIVER_VERSION
 WORKDIR /home/builder
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
 RUN git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
