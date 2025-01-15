@@ -10,7 +10,7 @@ ARG DRIVER_VERSION
 ARG ADDITIONAL_BUILD_DEPS
 WORKDIR /home/builder
 RUN if [ -n "$ADDITIONAL_BUILD_DEPS" ]; then \
-       dnf -y install $ADDITIONAL_BUILD_DEPS && \
+       dnf -y install -- $ADDITIONAL_BUILD_DEPS && \
        dnf clean all && \
        rm -rf /var/cache/yum; \
     fi
