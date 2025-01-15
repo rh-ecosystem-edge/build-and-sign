@@ -12,7 +12,7 @@ WORKDIR /home/builder
 RUN if [ -n "$ADDITIONAL_BUILD_DEPS" ]; then \
        dnf -y install $ADDITIONAL_BUILD_DEPS && \
        dnf clean all && \
-       rm -rf /var/cache/yum ;
+       rm -rf /var/cache/yum; \
     fi
 COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
 RUN git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
