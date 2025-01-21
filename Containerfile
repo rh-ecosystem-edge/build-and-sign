@@ -71,7 +71,7 @@ RUN source /tmp/envfile && \
 FROM ${DRIVER_IMAGE} as rpmbuilder
 ARG DRIVER_VERSION
 ARG KERNEL_VERSION
-USER rpmbuilder
+
 COPY --from=signer /opt/drivers /opt/drivers
 COPY --from=signer /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
 RUN dnf -y install rpmdevtools rpmlint kmod && \
