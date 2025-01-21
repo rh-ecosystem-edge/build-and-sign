@@ -1,6 +1,7 @@
 ARG DTK_IMAGE
 ARG SIGNER_SDK_IMAGE
 ARG DRIVER_IMAGE
+ARG DRIVER_VERSION
 ARG AWS_AUTH_SECRET
 
 FROM ${DTK_IMAGE} as dtk
@@ -8,13 +9,14 @@ USER root
 ARG DRIVER_REPO
 ARG DRIVER_VERSION
 ARG ADDITIONAL_BUILD_DEPS
+
 WORKDIR /home/builder
+COPY --chmod=0755 scripts/build-commands.sh /home/builder/build-commands.sh
 RUN if [ -n "$ADDITIONAL_BUILD_DEPS" ]; then \
        dnf -y install -- $ADDITIONAL_BUILD_DEPS && \
        dnf clean all && \
        rm -rf /var/cache/yum; \
     fi
-COPY --chmod=0755 build/build-commands.sh /home/builder/build-commands.sh
 RUN source /etc/driver-toolkit-release.sh && \
     echo $KERNEL_VERSION > /tmp/BUILD_KERNEL_VER && \
     git clone --depth 1 --branch $DRIVER_VERSION $DRIVER_REPO && \
@@ -66,8 +68,16 @@ RUN source /tmp/envfile && \
             "$file" \
             "$signedfile"; \
     done	   
-FROM ${DRIVER_IMAGE}
-# Install kmod just for testing purposes
-RUN dnf -y install kmod && dnf clean all && rm -rf /var/cache/yum
-COPY --from=signer /opt/drivers /opt/drivers
+FROM ${DRIVER_IMAGE} as rpmbuilder
+ARG DRIVER_VERSION
+ARG KERNEL_VERSION
 
+COPY --from=signer /opt/drivers /opt/drivers
+COPY --from=signer /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
+RUN dnf -y install rpmdevtools rpmlint kmod && \
+    dnf clean all && \
+    rm -rf /var/cache/yum
+WORKDIR /home/rpmbuilder
+RUN KERNEL_VERSION=$(cat /tmp/BUILD_KERNEL_VER)
+LABEL DRIVER_VERSION=$DRIVER_VERSION
+LABEL KERNEL_VERSION=$KERNEL_VERSION
