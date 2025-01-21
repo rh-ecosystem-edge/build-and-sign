@@ -70,6 +70,7 @@ RUN source /tmp/envfile && \
     done	   
 FROM ${DRIVER_IMAGE} as rpmbuilder
 ARG DRIVER_VERSION
+ARG KERNEL_VERSION
 USER rpmbuilder
 COPY --from=signer /opt/drivers /opt/drivers
 COPY --from=signer /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
@@ -77,5 +78,6 @@ RUN dnf -y install rpmdevtools rpmlint kmod && \
     dnf clean all && \
     rm -rf /var/cache/yum
 WORKDIR /home/rpmbuilder
+RUN KERNEL_VERSION=$(cat /tmp/BUILD_KERNEL_VER)
 LABEL DRIVER_VERSION=$DRIVER_VERSION
-LABEL KERNEL_VERSION=$(cat /tmp/BUILD_KERNEL_VER)
+LABEL KERNEL_VERSION=$KERNEL_VERSION
