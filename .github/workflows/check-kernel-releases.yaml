@@ -17,7 +17,7 @@ jobs:
           set -e
           REGISTRY="quay.io/build-and-sign"
           REPOSITORY="pa-driver-toolkit"
-          TAGS=$(docker image inspect --type=registry ${REGISTRY}/${REPOSITORY} | jq -r '.[0].RepoTags[]')
+          TAGS=$(docker image inspect ${REGISTRY}/${REPOSITORY} | jq -r '.[0].RepoTags[]')
           echo "::set-output name=tags::${TAGS}"
 
       - name: Read previous tags
