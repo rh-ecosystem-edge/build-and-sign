@@ -25,24 +25,28 @@ jobs:
         TAGS=$(skopeo list-tags docker://$DTKREPO | jq -c '.Tags | sort')
         echo "::set-output name=tags::$TAGS"
 
-    - name: Compare and update local and remote DTK tags
+    - name: Compare and update local DTK tags if remote changed
       id: compare
       run: |
         FILE="kernel-versions.json"
-        NEW_TAGS="${{ steps.fetch-tags.outputs.tags }}"
+        NEW_TAGS_JSON=$(jq -n \
+          --argjson kernel_versions "${{ steps.fetch-tags.outputs.tags }}" \
+          --arg date "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+          '{kernel_versions: $kernel_versions, last_updated: $date}')
         if [ -f "$FILE" ]; then
-          OLD_TAGS=$(cat "$FILE" | jq -c '.Tags | sort')
+          OLD_TAGS=$(cat "$FILE" | jq -c '.kernel_versions | sort')
         else
           OLD_TAGS="[]"
         fi
+        NEW_TAGS=$(echo "$NEW_TAGS_JSON" | jq -c '.kernel_versions | sort')
         if [ "$NEW_TAGS" != "$OLD_TAGS" ]; then
-          echo "Tags have changed."
-          echo $NEW_TAGS > $FILE
+          echo "New kernel versions found."
+          echo "$NEW_TAGS_JSON" > "$FILE"
           echo "CHANGED=true" >> $GITHUB_ENV
         else
-          echo "Tags have not changed."
+          echo "No new kernel versions found."
           echo "CHANGED=false" >> $GITHUB_ENV
-        fi
+        fi    
 
     - name: Commit and push changes for new found kernel versions
       if: env.CHANGED == 'true'
