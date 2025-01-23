@@ -1,58 +1,55 @@
 name: Check remote DTK tags
-
-on:
-  schedule:
+            
+on:       
+  schedule: 
     - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
-  check_tags:
+  check-and-update-dtk-tags:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Install skopeo
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y skopeo
+    - name: Set up skopeo
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y skopeo
 
-      - name: Get remote DTK tags
-        id: get_tags
-        run: |
-          set -e
-          REGISTRY="quay.io/build-and-sign"
-          REPOSITORY="pa-driver-toolkit"
-          TAGS=$(skopeo list-tags docker://${REGISTRY}/${REPOSITORY} | jq -r '.Tags[]')
-     
-          echo "::set-output name=tags::${TAGS}"
+    - name: Fetch remote DTK kernel version tags
+      id: fetch-tags
+      run: |
+        DTKREPO="quay.io/build-and-sign/pa-driver-toolkit"
+        TAGS=$(skopeo list-tags docker://$DTKREPO | jq -c '.Tags | sort')
+        echo "::set-output name=tags::$TAGS"
 
+    - name: Compare and update local and remote DTK tags
+      id: compare
+      run: |
+        FILE="kernel-versions.json"
+        NEW_TAGS="${{ steps.fetch-tags.outputs.tags }}"
+        if [ -f "$FILE" ]; then
+          OLD_TAGS=$(cat "$FILE" | jq -c '.Tags | sort')
+        else
+          OLD_TAGS="[]"
+        fi
+        if [ "$NEW_TAGS" != "$OLD_TAGS" ]; then
+          echo "Tags have changed."
+          echo $NEW_TAGS > $FILE
+          echo "CHANGED=true" >> $GITHUB_ENV
+        else
+          echo "Tags have not changed."
+          echo "CHANGED=false" >> $GITHUB_ENV
+        fi
 
-      - name: Read previous tags
-        id: read_previous_tags
-        run: |
-          if [ -f kernel-versions.txt ]; then
-            echo "::set-output name=previous_tags::$(cat kernel-versions.txt)"
-          fi
+    - name: Commit and push changes for new found kernel versions
+      if: env.CHANGED == 'true'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add kernel-versions.json
+        git commit -m "Update available DTK Kernel versions tags"
+        git push
 
-      - name: Compare tags
-        run: |
-          if [ -z "${{ steps.get_tags.outputs.tags }}" ]; then
-            echo "No tags found."
-          elif [ "${{ steps.get_tags.outputs.tags }}" != "${{ steps.read_previous_tags.outputs.previous_tags }}" ]; then
-            echo "Tags have changed."
-            echo "${{ steps.get_tags.outputs.tags }}" > tags.txt
-          else
-            echo "Tags are unchanged."
-          fi
-
-      - name: Commit and push changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "GitHub Actions"
-          if [ -f kernel-versions.txt ]; then
-            git add kernel-versions.txt
-            if [[ $(git status --porcelain) ]]; then
-              git commit -m "Update DTK available kernel versions"
-              git push
-            fi
-          fi
