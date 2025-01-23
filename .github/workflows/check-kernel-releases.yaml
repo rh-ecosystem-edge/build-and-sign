@@ -23,7 +23,9 @@ jobs:
           REGISTRY="quay.io/build-and-sign"
           REPOSITORY="pa-driver-toolkit"
           TAGS=$(skopeo inspect docker://${REGISTRY}/${REPOSITORY} | jq -r '.RepoTags[]')
+     
           echo "::set-output name=tags::${TAGS}"
+
 
       - name: Read previous tags
         id: read_previous_tags
