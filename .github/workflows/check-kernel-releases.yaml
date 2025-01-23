@@ -1,0 +1,51 @@
+name: Check remote DTK tags
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  check_tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get remote DTK tags
+        id: get_tags
+        run: |
+          set -e
+          REGISTRY="quay.io/build-and-sign"
+          REPOSITORY="pa-driver-toolkit"
+          TAGS=$(docker image inspect --type=registry ${REGISTRY}/${REPOSITORY} | jq -r '.[0].RepoTags[]')
+          echo "::set-output name=tags::${TAGS}"
+
+      - name: Read previous tags
+        id: read_previous_tags
+        run: |
+          if [ -f kernel-versions.txt ]; then
+            echo "::set-output name=previous_tags::$(cat kernel-versions.txt)"
+          fi
+
+      - name: Compare tags
+        run: |
+          if [ -z "${{ steps.get_tags.outputs.tags }}" ]; then
+            echo "No tags found."
+          elif [ "${{ steps.get_tags.outputs.tags }}" != "${{ steps.read_previous_tags.outputs.previous_tags }}" ]; then
+            echo "Tags have changed."
+            echo "${{ steps.get_tags.outputs.tags }}" > tags.txt
+          else
+            echo "Tags are unchanged."
+          fi
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
+          if [ -f kernel-versions.txt ]; then
+            git add kernel-versions.txt
+            if [[ $(git status --porcelain) ]]; then
+              git commit -m "Update DTK available kernel versions"
+              git push
+            fi
+          fi
