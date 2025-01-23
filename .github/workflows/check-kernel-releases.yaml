@@ -11,13 +11,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y skopeo
+
       - name: Get remote DTK tags
         id: get_tags
         run: |
           set -e
           REGISTRY="quay.io/build-and-sign"
           REPOSITORY="pa-driver-toolkit"
-          TAGS=$(docker image inspect ${REGISTRY}/${REPOSITORY} | jq -r '.[0].RepoTags[]')
+          TAGS=$(skopeo inspect docker://${REGISTRY}/${REPOSITORY} | jq -r '.RepoTags[]')
           echo "::set-output name=tags::${TAGS}"
 
       - name: Read previous tags
