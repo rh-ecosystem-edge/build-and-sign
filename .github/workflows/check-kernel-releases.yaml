@@ -22,7 +22,7 @@ jobs:
           set -e
           REGISTRY="quay.io/build-and-sign"
           REPOSITORY="pa-driver-toolkit"
-          TAGS=$(skopeo inspect docker://${REGISTRY}/${REPOSITORY} | jq -r '.RepoTags[]')
+          TAGS=$(skopeo list-tags docker://${REGISTRY}/${REPOSITORY} | jq -r '.RepoTags[]')
      
           echo "::set-output name=tags::${TAGS}"
 
