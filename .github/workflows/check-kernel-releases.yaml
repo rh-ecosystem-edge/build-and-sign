@@ -29,6 +29,8 @@ jobs:
       id: compare
       run: |
         FILE="kernel-versions.json"
+        RAW_TAGS='${{ steps.fetch-tags.outputs.tags }}'
+        NEW_TAGS=$(echo "$RAW_TAGS" | jq -c '.')        
         NEW_TAGS_JSON=$(jq -n \
           --argjson kernel_versions "${{ steps.fetch-tags.outputs.tags }}" \
           --arg date "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
