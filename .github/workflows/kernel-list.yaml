@@ -1,6 +1,6 @@
 name: Get Kernel List
 
-on: [pull_request]
+on: [push]
 
 jobs:
     steps:
