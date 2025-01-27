@@ -1,10 +1,10 @@
 name: Check remote DTK tags
             
 on:       
-  schedule: 
-    - cron: '*/5 * * * *'
-  workflow_dispatch: # Allow manual trigger
-
+#  schedule: 
+#    - cron: '*/5 * * * *'
+#  workflow_dispatch: # Allow manual trigger
+  [push]
 jobs:
   check-and-update-dtk-tags:
     runs-on: ubuntu-latest
