@@ -1,9 +1,10 @@
 import json
+import md5mod
 
 # File paths for the input JSON files
 driver_info_file = "data/driver-list.json"
 kernel_versions_file = "data/kernel-list.json"
-output_file = "data/combined_output.json"
+matrix_file = "data/combined_output.json"
 
 # Load JSON data from files
 with open(driver_info_file, "r") as driver_file:
@@ -14,7 +15,7 @@ with open(kernel_versions_file, "r") as kernel_file:
 
 # Load the combined output if it already exists to avoid rewriting
 try:
-    with open(output_file, "r") as existing_output:
+    with open(matrix_file, "r") as existing_output:
         combined_json = json.load(existing_output)
 except FileNotFoundError:
     combined_json = {"KERNELS": []}
@@ -52,8 +53,10 @@ for kernel_version, kernel_checksum in kernel_versions_json.items():
                     existing_driver["BUILD"] = "N"
 
 # Write the resulting JSON to an output file
-with open(output_file, "w") as output:
+with open(matrix_file, "w") as output:
     json.dump(combined_json, output, indent=2)
 
-print(f"Combined JSON written to {output_file}")
+print(f"Combined JSON written to {matrix_file}")
+# Generate MD5 checksum for matrix.json
+md5mod.createmd5(matrix_file)
 
