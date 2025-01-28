@@ -18,3 +18,13 @@ jobs:
           pip install -r scripts/requirements.txt      
       - name: Display kernel list
         run: python scripts/kernels.py
+      - name: Commit kernel list updates 
+        run: |
+          git config --local user.name "actions-build-and-sign@github.com"
+          git add ./scripts
+          git commit -m "Updating the kernel version list"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
