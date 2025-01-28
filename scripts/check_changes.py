@@ -2,7 +2,7 @@ import json
 import subprocess
 
 # File paths
-matrix_json_file = "combined_output.json"
+matrix_json_file = "data/combined_output.json"
 argsfile = "argfile.conf"
 
 # Function to update the PUBLISHED field and DRIVER_VERSION file
