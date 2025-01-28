@@ -60,6 +60,7 @@ for driver in driver_data:
 with open(matrix_file, 'w') as combined_file:
     json.dump(combined_data, combined_file, indent=4)
 
+
 print("Matrix JSON file updated successfully!")
 # Generate MD5 checksum for matrix.json
 md5mod.createmd5(matrix_file)
