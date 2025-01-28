@@ -17,4 +17,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Display kernel list
-        run: python scripts/kernel-list.py
+        run: python scripts/kernels.py

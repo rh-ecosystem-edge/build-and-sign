@@ -1,61 +1,61 @@
-name: Check remote DTK tags
-            
-on:       
+#name: Check remote DTK tags
+#            
+#on:       
 #  schedule: 
 #    - cron: '*/5 * * * *'
 #  workflow_dispatch: # Allow manual trigger
-  [push]
-jobs:
-  check-and-update-dtk-tags:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Set up skopeo
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y skopeo
-
-    - name: Fetch remote DTK kernel version tags
-      id: fetch-tags
-      run: |
-        DTKREPO="quay.io/build-and-sign/pa-driver-toolkit"
-        TAGS=$(skopeo list-tags docker://$DTKREPO | jq -c '.Tags | sort')
-        echo "::set-output name=tags::$TAGS"
-
-    - name: Compare and update local DTK tags if remote changed
-      id: compare
-      run: |
-        FILE="kernel-versions.json"
-        RAW_TAGS='${{ steps.fetch-tags.outputs.tags }}'
-        NEW_TAGS=$(echo "$RAW_TAGS" | jq -c '.')        
-        NEW_TAGS_JSON=$(jq -n \
-          --argjson kernel_versions "${{ steps.fetch-tags.outputs.tags }}" \
-          --arg date "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-          '{kernel_versions: $kernel_versions, last_updated: $date}')
-        if [ -f "$FILE" ]; then
-          OLD_TAGS=$(cat "$FILE" | jq -c '.kernel_versions | sort')
-        else
-          OLD_TAGS="[]"
-        fi
-        NEW_TAGS=$(echo "$NEW_TAGS_JSON" | jq -c '.kernel_versions | sort')
-        if [ "$NEW_TAGS" != "$OLD_TAGS" ]; then
-          echo "New kernel versions found."
-          echo "$NEW_TAGS_JSON" > "$FILE"
-          echo "CHANGED=true" >> $GITHUB_ENV
-        else
-          echo "No new kernel versions found."
-          echo "CHANGED=false" >> $GITHUB_ENV
-        fi    
-
-    - name: Commit and push changes for new found kernel versions
-      if: env.CHANGED == 'true'
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add kernel-versions.json
-        git commit -m "Update available DTK Kernel versions tags"
-        git push
-
+#  [push]
+#jobs:
+#  check-and-update-dtk-tags:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - name: Checkout repository
+#      uses: actions/checkout@v3
+#
+#    - name: Set up skopeo
+#      run: |
+#        sudo apt-get update
+#        sudo apt-get install -y skopeo
+#
+#    - name: Fetch remote DTK kernel version tags
+#      id: fetch-tags
+#      run: |
+#        DTKREPO="quay.io/build-and-sign/pa-driver-toolkit"
+#        TAGS=$(skopeo list-tags docker://$DTKREPO | jq -c '.Tags | sort')
+#        echo "::set-output name=tags::$TAGS"
+#
+#    - name: Compare and update local DTK tags if remote changed
+#      id: compare
+#      run: |
+#        FILE="kernel-versions.json"
+#        RAW_TAGS='${{ steps.fetch-tags.outputs.tags }}'
+#        NEW_TAGS=$(echo "$RAW_TAGS" | jq -c '.')        
+#        NEW_TAGS_JSON=$(jq -n \
+#          --argjson kernel_versions "${{ steps.fetch-tags.outputs.tags }}" \
+#          --arg date "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+#          '{kernel_versions: $kernel_versions, last_updated: $date}')
+#        if [ -f "$FILE" ]; then
+#          OLD_TAGS=$(cat "$FILE" | jq -c '.kernel_versions | sort')
+#        else
+#          OLD_TAGS="[]"
+#        fi
+#        NEW_TAGS=$(echo "$NEW_TAGS_JSON" | jq -c '.kernel_versions | sort')
+#        if [ "$NEW_TAGS" != "$OLD_TAGS" ]; then
+#          echo "New kernel versions found."
+#          echo "$NEW_TAGS_JSON" > "$FILE"
+#          echo "CHANGED=true" >> $GITHUB_ENV
+#        else
+#          echo "No new kernel versions found."
+#          echo "CHANGED=false" >> $GITHUB_ENV
+#        fi    
+#
+#    - name: Commit and push changes for new found kernel versions
+#      if: env.CHANGED == 'true'
+#      run: |
+#        git config user.name "github-actions[bot]"
+#        git config user.email "github-actions[bot]@users.noreply.github.com"
+#        git add kernel-versions.json
+#        git commit -m "Update available DTK Kernel versions tags"
+#        git push
+#
