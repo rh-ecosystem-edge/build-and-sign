@@ -7,10 +7,10 @@ output_file = "data/combined_output.json"
 
 # Load JSON data from files
 with open(driver_info_file, "r") as driver_file:
-    driver_info_json = json.load(driver_file)
+    driver_info_json = json.load(driver_file)  # List of drivers
 
 with open(kernel_versions_file, "r") as kernel_file:
-    kernel_versions_json = json.load(kernel_file)
+    kernel_versions_json = json.load(kernel_file)  # Dict of kernel versions and checksums
 
 # Load the combined output if it already exists to avoid rewriting
 try:
@@ -24,7 +24,7 @@ existing_kernels = {entry["KERNEL_VERSION"]: entry for entry in combined_json["K
 
 # Process and add new kernels and drivers
 for kernel_version, kernel_checksum in kernel_versions_json.items():
-    # If the kernel already exists, skip its re-creation
+    # If the kernel already exists, use it; otherwise, create a new entry
     if kernel_version in existing_kernels:
         kernel_entry = existing_kernels[kernel_version]
     else:
