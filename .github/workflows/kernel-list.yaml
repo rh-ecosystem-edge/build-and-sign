@@ -1,4 +1,4 @@
-name: Get Kernel list and save matrix
+name: Check unbuilt items in matrix and branch 
 
 on: [push]
 
@@ -16,19 +16,5 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt      
-      - name: Get kernel list
-        run: python scripts/kernels.py
-      - name: Update matrix file
-        run: python scripts/re-matrix.py
-      - name: Commit kernel list updates 
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"          
-          if git diff --quiet; then
-            echo "No changes detected. Skipping commit and push."
-          else
-            git add data 
-            git commit -m "Updating the kernel version list"
-            git push
-          fi          
-      
+      - name: Crawl and build from matrix
+        run: python scripts/check_changes.py 
