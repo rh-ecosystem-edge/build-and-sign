@@ -1,0 +1,29 @@
+[
+  {
+    "VERSION": "570.86.15",
+    "URL": "https://github.com/NVIDIA/open-gpu-kernel-modules",
+    "RELEASE_DATE": "2021-02-12",
+    "CHECKSUM": "SHA256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "DRIVER_STATUS": "PROD",
+    "ARCH": "x86_64",
+    "TAGS": ["release", "beta"]
+  },
+  {
+    "VERSION": "550.40.83",
+    "URL": "https://github.com/NVIDIA/open-gpu-kernel-modules",
+    "RELEASE_DATE": "2021-02-12",
+    "CHECKSUM": "SHA256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "DRIVER_STATUS": "PROD",
+    "ARCH": "x86_64",
+    "TAGS": ["release", "beta"]
+  },
+  {
+    "VERSION": "535.230.02",
+    "URL": "https://github.com/NVIDIA/open-gpu-kernel-modules",
+    "RELEASE_DATE": "2021-02-12",
+    "CHECKSUM": "SHA256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "DRIVER_STATUS": "PROD",
+    "ARCH": "x86_64",
+    "TAGS": ["release", "beta"]
+  }
+]
