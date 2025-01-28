@@ -1,9 +1,9 @@
 import json
 
 # File paths for the input JSON files
-driver_info_file = "driver-list.json"
-kernel_versions_file = "kernel-list.json"
-output_file = "combined_output.json"
+driver_info_file = "data/driver-list.json"
+kernel_versions_file = "data/kernel-list.json"
+output_file = "data/combined_output.json"
 
 # Load JSON data from files
 with open(driver_info_file, "r") as driver_file:
