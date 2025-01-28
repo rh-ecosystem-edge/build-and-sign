@@ -24,7 +24,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"          
-          git add .
-          git commit -m "Updating the kernel version list"
-          git push
-
+          if git diff --quiet; then
+            echo "No changes detected. Skipping commit and push."
+          else
+            git add data 
+            git commit -m "Updating the kernel version list"
+            git push
+          fi          
+      
