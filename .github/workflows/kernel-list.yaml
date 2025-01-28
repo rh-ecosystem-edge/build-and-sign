@@ -1,4 +1,4 @@
-name: Get Kernel List
+name: Get Kernel list and save matrix
 
 on: [push]
 
