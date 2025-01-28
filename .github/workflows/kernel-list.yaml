@@ -20,11 +20,8 @@ jobs:
         run: python scripts/kernels.py
       - name: Commit kernel list updates 
         run: |
-          git config --local user.name "actions-build-and-sign@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"          
           git add ./scripts
           git commit -m "Updating the kernel version list"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
+          git push
