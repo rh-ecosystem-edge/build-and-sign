@@ -25,3 +25,6 @@ jobs:
           git add .
           git commit -m "Updating the kernel version list"
           git push
+      - name: Update matrix file
+        run: python scripts/matrix.py
+
