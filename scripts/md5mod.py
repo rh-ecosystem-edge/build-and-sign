@@ -1,6 +1,6 @@
 import hashlib
 def createmd5(filetocheck): 
-  filename = "data/" + filetocheck
+  filename = filetocheck
   checksumfile = filetocheck[:-4] + "md5"
   md5_hash = hashlib.md5()
   with open(filename,"rb") as f:
