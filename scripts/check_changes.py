@@ -5,15 +5,15 @@ import subprocess
 matrix_json_file = "data/combined_output.json"
 argsfile = "argfile.conf"
 
-# Function to update the PUBLISHED field and DRIVER_VERSION file
+# Function to update the DRIVER_PUBLISHED field and DRIVER_VERSION file
 def update_files(driver_version, kernel_version):
-    # Update BUILD field in combined JSON
+    # Update DRIVER_PUBLISHED field in combined JSON
     with open(matrix_json_file, "r") as f:
         combined_data = json.load(f)
 
     for entry in combined_data:
         if entry["DRIVER_VERSION"] == driver_version and entry["KERNEL_VERSION"] == kernel_version:
-            entry["PUBLISHED"] = "Y"
+            entry["DRIVER_PUBLISHED"] = "Y"
             break
 
     with open(matrix_json_file, "w") as f:
@@ -40,7 +40,7 @@ def create_branch_and_pr(driver_version, kernel_version):
 
     # Commit changes
     subprocess.run(["git", "add", matrix_json_file, argsfile], check=True)
-    subprocess.run(["git", "commit", "-m", f"Update PUBLISHED status and KERNEL_VERSION for {driver_version}-{kernel_version}"], check=True)
+    subprocess.run(["git", "commit", "-m", f"Update DRIVER_PUBLISHED status and KERNEL_VERSION for {driver_version}-{kernel_version}"], check=True)
 
     # Push branch
     subprocess.run(["git", "push", "origin", branch_name], check=True)
@@ -51,11 +51,11 @@ if __name__ == "__main__":
     with open(matrix_json_file, "r") as f:
         combined_data = json.load(f)
 
-    # Find entries with PUBLISHED = "N"
-    entries_to_process = [entry for entry in combined_data if entry.get("PUBLISHED") == "N"]
+    # Find entries with DRIVER_PUBLISHED = "N"
+    entries_to_process = [entry for entry in combined_data if entry.get("DRIVER_PUBLISHED") == "N"]
 
     if not entries_to_process:
-        print("No entries with PUBLISHED = 'N' found. Exiting.")
+        print("No entries with DRIVER_PUBLISHED = 'N' found. Exiting.")
         exit(0)
 
     # Process each entry
