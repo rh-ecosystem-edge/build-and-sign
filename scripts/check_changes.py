@@ -35,6 +35,10 @@ def create_branch_and_pr(driver_version, kernel_version):
     branch_name = driver_version + "-" + kernel_version
     subprocess.run(["git", "checkout", "-b", branch_name], check=True)
 
+    # Config git identity
+    subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+    subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+
     # Update files
     update_files(driver_version, kernel_version)
 
