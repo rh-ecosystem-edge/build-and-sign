@@ -56,7 +56,8 @@ def create_branch_and_pr(driver_version, kernel_version):
     headers = {'Accept': "application/vnd.github+json", 'Authorization': "Bearer " + TOKEN, 'X-GitHub-Api-Version': "2022-11-28"}
     body = {'title': token, 'body': "A new automatic build-and-sign run for " + branch_name, 'head': branch_name, 'base': "main"}
     url = "https://" + {API} +"/repos/rh-ecosystem-edge/build-and-sign"
-    pr = requests.post(url, data=json.dumps(body)), headers=headers)
+    data = json.dumps(body)
+    pr = requests.post(url, headers=headers, data=data)
     print(pr.json)
     
 # Main script
