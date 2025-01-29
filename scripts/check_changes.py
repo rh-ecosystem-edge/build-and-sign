@@ -49,6 +49,8 @@ def create_branch_and_pr(driver_version, kernel_version):
     # Push branch
     subprocess.run(["git", "push", "origin", branch_name], check=True)
 
+    # Create the PR
+    subprocess.run(["gh", "pr", "create", "--base main", f"head {branch_name}", f"--title \"Build for {branch_name} version\"", f"--body \"Automatic PR for build and sign\""], check=True)  
 # Main script
 if __name__ == "__main__":
     # Load current combined JSON data
