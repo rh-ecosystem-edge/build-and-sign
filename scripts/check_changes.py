@@ -61,9 +61,12 @@ def create_branch_and_pr(driver_version, kernel_version):
     url = api +"/repos/rh-ecosystem-edge/build-and-sign"
     
     data = json.dumps(body)
-    print(f"REQUEST: {title} | Headers: {headers} | Data: {data} | URL: {url}")
+    #print(f"REQUEST: {title} | Headers: {headers} | Data: {data} | URL: {url}")
     pr = requests.post(url, headers=headers, data=data)
+    if pr.status_code == 200:
     print(pr.json)
+else:
+    raise SystemExit(f'Error: Got Status {pr.status.code}.')
     
 # Main script
 if __name__ == "__main__":
