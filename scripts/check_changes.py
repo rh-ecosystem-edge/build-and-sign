@@ -64,9 +64,9 @@ def create_branch_and_pr(driver_version, kernel_version):
     #print(f"REQUEST: {title} | Headers: {headers} | Data: {data} | URL: {url}")
     pr = requests.post(url, headers=headers, data=data)
     if pr.status_code == 200:
-    print(pr.json)
-else:
-    raise SystemExit(f'Error: Got Status {pr.status.code}.')
+       print(pr.json)
+    else:
+       raise SystemExit(f'Error: Got Status {pr.status.code}.')
     
 # Main script
 if __name__ == "__main__":
