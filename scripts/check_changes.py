@@ -8,6 +8,8 @@ matrix_json_file = "data/combined_output.json"
 argsfile = "argfile.conf"
 token = os.getenv("TOKEN")
 api = os.getenv("GITHUB_API_URL")
+if not token:
+    raise ValueError("GITHUB_TOKEN is missing!")
 
 # Function to update the DRIVER_PUBLISHED field and DRIVER_VERSION file
 def update_files(driver_version, kernel_version):
@@ -53,16 +55,21 @@ def create_branch_and_pr(driver_version, kernel_version):
     # Push branch
     subprocess.run(["git", "push", "origin", branch_name], check=True)
 
-    # Create the PR
-    title = "Automatic build for " + branch_name
-    headers = {'Accept': "application/vnd.github+json", 'Authorization': "Bearer " + token, 'GitHub-Api-Version': "2022-11-28"}
-    #headers = {'Authorization': f'token {token}', "User-Agent": "auto-build-and-sign", "Accept": "application/vnd.github.v3+json"}    
-    body = {'title': title, 'body': "A new automatic build-and-sign run for " + branch_name, 'head': branch_name, 'base': "main"}
-    url = api +"/repos/rh-ecosystem-edge/build-and-sign"
-    
-    data = json.dumps(body)
+    # Create the PR for each commit
+    url = api +"/repos/rh-ecosystem-edge/build-and-sign/pulls"
+    headers = {
+    "Accept": "application/vnd.github+json",
+    "Authorization": f"Bearer {token}",
+    "X-GitHub-Api-Version": "2022-11-28"            
+    }
+    data = {
+    "title": f"Automated build-and-sign PR for {branch_name}",
+    "body": f"This PR was created automatically by GitHub Actions to trigger a new build and sign of {branch_name}.",
+    "head": f"{branch_name}",
+    "base": "main"
+     }
     #print(f"REQUEST: {title} | Headers: {headers} | Data: {data} | URL: {url}")
-    pr = requests.post(url, headers=headers, data=data)
+    pr = requests.post(url, headers=headers, json=data)
     if pr.status_code == 200:
        print(pr.json)
     else:
