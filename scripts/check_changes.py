@@ -66,7 +66,7 @@ def create_branch_and_pr(driver_version, kernel_version):
     if pr.status_code == 200:
        print(pr.json)
     else:
-       raise SystemExit(f'Error: Got Status {pr.status.code}.')
+       raise SystemExit(f'Error: Got Status {pr.status_code}.')
     
 # Main script
 if __name__ == "__main__":
