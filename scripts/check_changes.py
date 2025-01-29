@@ -1,5 +1,6 @@
 import json
 import subprocess
+import request
 
 # File paths
 matrix_json_file = "data/combined_output.json"
@@ -50,7 +51,14 @@ def create_branch_and_pr(driver_version, kernel_version):
     subprocess.run(["git", "push", "origin", branch_name], check=True)
 
     # Create the PR
-    subprocess.run(["gh", "pr", "create", f"--title \"Build for {branch_name} version\"", f"--body \"Automatic PR for build and sign\"", "--base main", f"--head {branch_name}"], check=True)  
+#    subprocess.run(["gh", "pr", "create", f"--title \"Build for {branch_name} version\"", f"--body \"Automatic PR for build and sign\"", "--base main", f"--head {branch_name}"], check=True)
+    title = f"Automatic build for {branch_name}"
+    headers = f{'Accept':'application/vnd.github+json', 'Authorization':'Bearer {TOKEN}', 'X-GitHub-Api-Version':'2022-11-28'}
+    body = f{'title':'{title}', 'body':'A new automatic build-and-sign run for {branch_name}', 'head':'{branch_name}', 'base':'main'}
+    url = f"https://{API}/repos/rh-ecosystem-edge/build-and-sign"
+    pr = requests.post(url, data=json.dumps(body)), headers=headers)
+    print(pr.json)
+    
 # Main script
 if __name__ == "__main__":
     # Load current combined JSON data

@@ -19,4 +19,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt      
       - name: Crawl and build from matrix
-        run: python scripts/check_changes.py 
+        run: python scripts/check_changes.py
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          API: ${{ GITHUB_API_URL }}
