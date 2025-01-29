@@ -1,6 +1,8 @@
 name: Check unbuilt items in matrix and branch 
 
-on: [push]
+on:
+  workflow_dispatch:
+  push: 
 
 jobs:
   build:
