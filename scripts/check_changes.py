@@ -7,6 +7,7 @@ import os
 matrix_json_file = "data/combined_output.json"
 argsfile = "argfile.conf"
 token = os.getenv("TOKEN")
+api = os.getenv("API")
 
 # Function to update the DRIVER_PUBLISHED field and DRIVER_VERSION file
 def update_files(driver_version, kernel_version):
@@ -53,11 +54,10 @@ def create_branch_and_pr(driver_version, kernel_version):
     subprocess.run(["git", "push", "origin", branch_name], check=True)
 
     # Create the PR
-#    subprocess.run(["gh", "pr", "create", f"--title \"Build for {branch_name} version\"", f"--body \"Automatic PR for build and sign\"", "--base main", f"--head {branch_name}"], check=True)
     title = "Automatic build for " + branch_name
     headers = {'Accept': "application/vnd.github+json", 'Authorization': "Bearer " + token, 'GitHub-Api-Version': "2022-11-28"}
     body = {'title': token, 'body': "A new automatic build-and-sign run for " + branch_name, 'head': branch_name, 'base': "main"}
-    url = "https://" + API +"/repos/rh-ecosystem-edge/build-and-sign"
+    url = "https://" + api +"/repos/rh-ecosystem-edge/build-and-sign"
     data = json.dumps(body)
     pr = requests.post(url, headers=headers, data=data)
     print(pr.json)
