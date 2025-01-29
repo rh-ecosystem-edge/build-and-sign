@@ -1,6 +1,6 @@
 import json
 import subprocess
-import request
+import requests
 
 # File paths
 matrix_json_file = "data/combined_output.json"
