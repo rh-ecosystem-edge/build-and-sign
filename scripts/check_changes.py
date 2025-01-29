@@ -7,7 +7,7 @@ import os
 matrix_json_file = "data/combined_output.json"
 argsfile = "argfile.conf"
 token = os.getenv("TOKEN")
-api = os.getenv("API")
+api = os.getenv("GITHUB_API_URL")
 
 # Function to update the DRIVER_PUBLISHED field and DRIVER_VERSION file
 def update_files(driver_version, kernel_version):
