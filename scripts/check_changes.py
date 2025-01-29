@@ -55,7 +55,8 @@ def create_branch_and_pr(driver_version, kernel_version):
 
     # Create the PR
     title = "Automatic build for " + branch_name
-    headers = {'Accept': "application/vnd.github+json", 'Authorization': "Bearer " + token, 'GitHub-Api-Version': "2022-11-28"}
+    #headers = {'Accept': "application/vnd.github+json", 'Authorization': "Bearer " + token, 'GitHub-Api-Version': "2022-11-28"}
+    headers = {'Authorization': f'token {token}', "User-Agent": "auto-build-and-sign", "Accept": "application/vnd.github.v3+json"}    
     body = {'title': token, 'body': "A new automatic build-and-sign run for " + branch_name, 'head': branch_name, 'base': "main"}
     url = api +"/repos/rh-ecosystem-edge/build-and-sign"
     data = json.dumps(body)
