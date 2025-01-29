@@ -22,4 +22,4 @@ jobs:
         run: python scripts/check_changes.py
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          API: ${{ GITHUB_API_URL }}
+          API: ${{ env.GITHUB_API_URL }}
