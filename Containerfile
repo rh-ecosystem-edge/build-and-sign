@@ -76,7 +76,7 @@ RUN dnf -y install git git-lfs && \
 RUN --mount=type=secret,id=${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN echo "export PRIVATE_GITLAB_TOKEN="$(cat /run/secrets/${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN) >> /tmp/envfile
 RUN source /tmp/envfile && \
     git config --global credential.helper store && \
-    echo "https://${PRIVATE_GITLAB_TOKEN}:x-oauth-basic@gitlab.com" > ~/.git-credentials && \
+    echo "https://gitlab-user:${PRIVATE_GITLAB_TOKEN}@gitlab.com" > ~/.git-credentials && \
     git config --global credential.useHttpPath true
 RUN git clone "https://${UPLOAD_ARTIFACT_REPO}" /artifact-repo && \
     cd /artifact-repo && \
