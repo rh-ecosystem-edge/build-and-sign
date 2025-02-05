@@ -28,7 +28,7 @@ spec:
   - name: build-args-file
     value: argfile.conf
   - name: additional-build-secret
-    value: my-aws-auth-secret    
+    value: external-auth-secret    
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
