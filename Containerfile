@@ -70,6 +70,9 @@ ARG DRIVER_VERSION KERNEL_VERSION AUTH_SECRET DRIVER_VENDOR UPLOAD_ARTIFACT_REPO
 COPY --from=signer /opt/drivers /opt/drivers
 COPY --from=signer /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
 RUN KERNEL_VERSION=$(cat /tmp/BUILD_KERNEL_VER)
+RUN dnf -y install git git-lfs && \
+    dnf clean all && \
+    rm -rf /var/cache/yum
 RUN --mount=type=secret,id=${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN echo "export PRIVATE_GITLAB_TOKEN="$(cat /run/secrets/${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN) >> /tmp/envfile
 RUN source /tmp/envfile && \
     git clone "https://${PRIVATE_GITLAB_TOKEN}@${UPLOAD_ARTIFACT_REPO}" /artifact-repo && \
@@ -77,8 +80,8 @@ RUN source /tmp/envfile && \
     git lfs install && \
     git lfs track "*.tar.xz" && \
     tar -cvJf ${DRIVER_VENDOR}-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz /opt/drivers && \
-    rm -rf /opt/drivers
-RUN cd /artifact-repo && \
+    rm -rf /opt/drivers &&\
+    cd /artifact-repo && \
     git add . && \
     git commit -m "Adding ${DRIVER_VENDOR}-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz" && \
     git push origin main
