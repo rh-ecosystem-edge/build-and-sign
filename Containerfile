@@ -74,7 +74,7 @@ RUN dnf -y install git git-lfs && \
     dnf clean all && \
     rm -rf /var/cache/yum
 RUN --mount=type=secret,id=${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN echo "export PRIVATE_GITLAB_TOKEN="$(cat /run/secrets/${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN) >> /tmp/envfile
-RUN source /tmp/envfile && 
+RUN source /tmp/envfile && \
     git config --global credential.helper store && \
     echo "https://${PRIVATE_GITLAB_TOKEN}:x-oauth-basic@gitlab.com" > ~/.git-credentials && \
     git config --global credential.useHttpPath true
