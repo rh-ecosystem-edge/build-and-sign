@@ -86,7 +86,7 @@ RUN source /tmp/envfile && \
     rm -rf /opt/drivers && \
     git add . && \
     git commit -m "Adding  ${DRIVER_VENDOR}-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz" && \
-    git push origin main
+    git push -f origin main
 
 LABEL DRIVER_VERSION=$DRIVER_VERSION
 LABEL KERNEL_VERSION=$KERNEL_VERSION
