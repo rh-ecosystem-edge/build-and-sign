@@ -3,7 +3,7 @@
         "5.14.0-70.13.1.el9_0.x86_64": {
             "DRIVER_VERSION": {
                 "565.77": {
-                    "BUILD": "Y",
+                    "BUILD": "N",
                     "RELEASE_DATE": "2024-12-05",
                     "CHECKSUM": "a3f5e9c1234567890abcdef123456789",
                     "DRIVER_STATUS": "RC",

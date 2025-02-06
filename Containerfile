@@ -79,7 +79,7 @@ RUN source /tmp/envfile && \
     cd artifact-storage && \
     git lfs install && \
     git lfs track "*.tar.xz" && \
-    git remote set-url origin "https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@{UPLOAD_ARTIFACT_REPO}" && \
+    git remote set-url origin "https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@${UPLOAD_ARTIFACT_REPO}" && \
     git config --global user.email "ebelarte-build-and-sign-tests@tests.redhat.com" && \
     git config --global user.name "CI build LFS bot" && \
     tar -cvJf ${DRIVER_VENDOR}-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz /opt/drivers && \
