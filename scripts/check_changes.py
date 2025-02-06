@@ -3,7 +3,6 @@ import subprocess
 import requests
 import os
 
-# File paths
 matrix_json_file = "data/combined_output.json"
 argsfile = "argfile.conf"
 token = os.getenv("TOKEN")
