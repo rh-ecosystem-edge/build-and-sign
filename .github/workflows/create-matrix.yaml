@@ -19,7 +19,7 @@ jobs:
       - name: Get kernel list
         run: python scripts/kernels.py
       - name: Update matrix file
-        run: python scripts/re-matrix.py
+        run: python scripts/re_matrix.py
       - name: Commit kernel list updates 
         run: |
           git config user.name "github-actions[bot]"

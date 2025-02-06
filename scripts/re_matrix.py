@@ -1,9 +1,18 @@
 import json
 import os
 import md5mod
+import urllib.request
+import read_argfile
+
+# Download driver_info_file from argfile.conf
+config = read_argfile.read_key_value_file()
+DRIVER_VER_JSON = config.get("DRIVER_VER_JSON", "Key 'DRIVER_VER_JSON' not found.")
+download_dir = "vendor"
+os.makedirs(download_dir, exist_ok=True)
 
 # Sources for kernel versions and driver versions
-driver_info_file = "data/driver-list.json"
+driver_info_file = read_argfile.download_file(DRIVER_VER_JSON, os.path.join(download_dir, os.path.basename(DRIVER_VER_JSON))) if DRIVER_VER_JSON.startswith("http") else "Invalid URL"
+#driver_info_file = "data/driver-list.json"
 kernel_versions_file = "data/kernel-list.json"
 matrix_file = "data/combined_output.json"
 
