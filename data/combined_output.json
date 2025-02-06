@@ -95,7 +95,7 @@
         "KERNEL_CHECKSUM": "4ead5b9864b4839e4e5d2a6348bd7deba5682d057952eab83695d62ad2ea3652",
         "DRIVER_URL": "https://github.com/NVIDIA/open-gpu-kernel-modules",
         "DRIVER_RELEASE_DATE": "2021-02-12",
-        "DRIVER_PUBLISHED": "N",
+        "DRIVER_PUBLISHED": "Y",
         "DRIVER_CHECKSUM": "SHA256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "DRIVER_STATUS": "PROD",
         "ARCH": "x86_64",
