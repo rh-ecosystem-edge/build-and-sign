@@ -7,7 +7,7 @@ import read_argfile
 # Download driver_info_file from argfile.conf
 config = read_argfile.read_key_value_file()
 DRIVER_VER_JSON = config.get("DRIVER_VER_JSON", "Key 'DRIVER_VER_JSON' not found.")
-download_dir = "/vendor"
+download_dir = "vendor"
 os.makedirs(download_dir, exist_ok=True)
 
 # Sources for kernel versions and driver versions
