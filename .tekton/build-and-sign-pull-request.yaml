@@ -592,6 +592,27 @@ spec:
         operator: in
         values:
         - "false"
+    - name: upload-signed-drivers
+      taskRef:
+        name: upload-to-git
+      workspaces:          
+        - name: drivers-dir
+          workspace: shared-workspace
+      params:
+        - name: gitrepo
+          value: "gitlab.com/ebelarte/artifact-storage.git"
+        - name: remotebranch
+          value: "main"
+        - name: remotedir
+          value: "/opt/drivers"
+        - name: driver_vendor
+          value: "opengpu-nvidia"
+        - name: containerimage
+          value: $(params.output-image)
+        - name: driverdir_pattern
+          value: "opt/drivers"
+      runAfter:
+      - build-container        
     workspaces:
     - name: git-auth
       optional: true
@@ -602,4 +623,6 @@ spec:
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
+  - name: shared-workspace
+    emptyDir: {}
 status: {}

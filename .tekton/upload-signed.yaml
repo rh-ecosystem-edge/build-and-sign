@@ -1,0 +1,72 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: upload-to-git
+spec:
+  params:
+    - name: gitrepo
+      type: string
+      description: The URL of the LFS Git repository
+    - name: remotebranch
+      type: string
+      description: The branch to push changes to
+    - name: remotedir
+      type: string
+      description: The directory to upload
+    - name: driver_vendor
+      type: string
+      description: Vendor name
+    - name: containerimage 
+      type: string
+    - name: driverdir_pattern
+      type: string
+      description: What pattern should be searched within the layer where built drivers are e.g. /mydrivers
+  workspaces: 
+    - name: drivers-dir
+      description: Shared directory with signed drivers
+  steps:
+    - name: copy-signed-driver 
+      image: registry.redhat.io/ubi9/skopeo@sha256:713f01d02801350e32a6bce4285bbf93a8032444c4cac5d6e00e639b342dc0f0
+      script: |
+        dnf -y install file
+        skopeo copy docker://$(params.containerimage) dir:/tmp/drivers-image
+                 mkdir -p /tmp/layers && mkdir -p /opt/extracted-files
+                 cd /tmp/drivers-image
+                 for layer in $(ls -1t | grep -v 'manifest.json\|version'); do
+                     if file "$layer" | grep -q "gzip compressed"; then \
+                     echo "DEBUG: remotedir- $(params.remotedir) shared: $(workspaces.drivers-dir.path)"
+                     echo "DATA: $(params.remotedir) LAYER: $layer"
+                        if tar -tf $layer | grep -q "^$(params.driverdir_pattern)" ; then
+                           echo "Pattern $(params.driverdir_pattern) found in layer $layer"
+                           mv "$layer" "$layer.tar.gz" 
+                           echo "Created $layer.tar.gz"
+                           tar -xvf "$layer.tar.gz" -C "$(workspaces.drivers-dir.path)" 
+                        fi
+                    fi
+                 done
+        
+    - name: git-upload-lfs
+      image: registry.access.redhat.com/ubi9/toolbox@sha256:7ea2a799a9cf6b0111f16418039ce0b7b30f5f764747960ce3a1dea4d89b78d8
+      env:
+        - name: PRIVATE_GITLAB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.additional-build-secret)
+              key: "PRIVATE_GITLAB_TOKEN"
+      script: |
+        echo "SHARED DIR: $(workspaces.drivers-dir.path)"
+        ls -l $(workspaces.drivers-dir.path)/
+        sudo dnf -y install git-lfs
+        git clone https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@$(params.gitrepo) drivers && \
+        cd drivers && \
+        git lfs install && \
+        git lfs track "*.tar.xz" && \
+        git remote set-url origin "https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@$(params.gitrepo)" && \
+        git config --global user.email "ebelarte-build-and-sign-tests@tests.redhat.com" && \
+        git config --global user.name "CI build LFS bot" && \
+        tar -cvJf $(params.driver_vendor)-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz "$(workspaces.drivers-dir.path)/opt/drivers && \
+        #rm -rf /opt/drivers && \
+        git add . && \
+        git commit -m "Adding  $(params.driver_vendor)-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz" && \
+        git push -f origin $(params.remotebranch) 
+            
