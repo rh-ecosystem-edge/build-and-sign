@@ -59,6 +59,7 @@ spec:
         sudo dnf -y install git-lfs
         git clone https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@$(params.gitrepo) drivers && \
         cd drivers && \
+        source "$(workspaces.drivers-dir.path)/opt/drivers/envfile" && \
         git lfs install && \
         git lfs track "*.tar.xz" && \
         git remote set-url origin "https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@$(params.gitrepo)" && \

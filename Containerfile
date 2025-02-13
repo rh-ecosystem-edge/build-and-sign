@@ -69,9 +69,9 @@ ARG DRIVER_VERSION KERNEL_VERSION AUTH_SECRET DRIVER_VENDOR UPLOAD_ARTIFACT_REPO
 
 COPY --from=signer /opt/drivers /opt/drivers
 COPY --from=signer /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
-RUN echo "KERNEL_VERSION="$(cat /tmp/BUILD_KERNEL_VER) >> /envfile && \
-    echo "DRIVER_VERSION=${DRIVER_VERSION}" >> /envfile && \
-    echo "DRIVER_VENDOR=${DRIVER_VENDOR}" >> /envfile
+RUN echo "KERNEL_VERSION="$(cat /tmp/BUILD_KERNEL_VER) >> /opt/drivers/envfile && \
+    echo "DRIVER_VERSION=${DRIVER_VERSION}" >> /opt/drivers/envfile && \
+    echo "DRIVER_VENDOR=${DRIVER_VENDOR}" >> /opt/drivers/envfile
 
 LABEL DRIVER_VERSION=$DRIVER_VERSION
 LABEL KERNEL_VERSION=$KERNEL_VERSION
