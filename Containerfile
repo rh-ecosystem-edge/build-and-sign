@@ -69,24 +69,9 @@ ARG DRIVER_VERSION KERNEL_VERSION AUTH_SECRET DRIVER_VENDOR UPLOAD_ARTIFACT_REPO
 
 COPY --from=signer /opt/drivers /opt/drivers
 COPY --from=signer /tmp/BUILD_KERNEL_VER /tmp/BUILD_KERNEL_VER
-RUN echo "export KERNEL_VERSION="$(cat /tmp/BUILD_KERNEL_VER) >> /tmp/envfile
-RUN dnf -y install git git-lfs xz && \
-    dnf clean all && \
-    rm -rf /var/cache/yum
-RUN --mount=type=secret,id=${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN echo "export PRIVATE_GITLAB_TOKEN="$(cat /run/secrets/${AUTH_SECRET}/PRIVATE_GITLAB_TOKEN) >> /tmp/envfile
-RUN source /tmp/envfile && \
-    git clone https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@${UPLOAD_ARTIFACT_REPO} && \
-    cd artifact-storage && \
-    git lfs install && \
-    git lfs track "*.tar.xz" && \
-    git remote set-url origin "https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@${UPLOAD_ARTIFACT_REPO}" && \
-    git config --global user.email "ebelarte-build-and-sign-tests@tests.redhat.com" && \
-    git config --global user.name "CI build LFS bot" && \
-    tar -cvJf ${DRIVER_VENDOR}-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz /opt/drivers && \
-    rm -rf /opt/drivers && \
-    git add . && \
-    git commit -m "Adding  ${DRIVER_VENDOR}-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz" && \
-    git push -f origin main
+RUN echo "KERNEL_VERSION="$(cat /tmp/BUILD_KERNEL_VER) >> /opt/drivers/envfile && \
+    echo "DRIVER_VERSION=${DRIVER_VERSION}" >> /opt/drivers/envfile && \
+    echo "DRIVER_VENDOR=${DRIVER_VENDOR}" >> /opt/drivers/envfile
 
 LABEL DRIVER_VERSION=$DRIVER_VERSION
 LABEL KERNEL_VERSION=$KERNEL_VERSION
