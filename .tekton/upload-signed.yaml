@@ -64,7 +64,7 @@ spec:
         git remote set-url origin "https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@$(params.gitrepo)" && \
         git config --global user.email "ebelarte-build-and-sign-tests@tests.redhat.com" && \
         git config --global user.name "CI build LFS bot" && \
-        tar -cvJf $(params.driver_vendor)-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz "$(workspaces.drivers-dir.path)/opt/drivers && \
+        tar -cvJf $(params.driver_vendor)-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz "$(workspaces.drivers-dir.path)/opt/drivers" && \
         #rm -rf /opt/drivers && \
         git add . && \
         git commit -m "Adding  $(params.driver_vendor)-${DRIVER_VERSION}-${KERNEL_VERSION}.tar.xz" && \
