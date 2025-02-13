@@ -1,102 +1,198 @@
+import os
+import sys
 import json
 import subprocess
 import requests
-import os
 
-matrix_json_file = "data/combined_output.json"
-argsfile = "argfile.conf"
-token = os.getenv("TOKEN")
-api = os.getenv("GITHUB_API_URL")
-dtk_reg = "quay.io/build-and-sign/pa-driver-toolkit"
+MATRIX_JSON_FILE = "data/combined_output.json"
+ARGSFILE = "argfile.conf"
+TOKEN = os.getenv("TOKEN", "test token")
+ARTIFACT_TOKEN = os.getenv("ARTIFACT_TOKEN", "gitlab token")
+API = os.getenv("GITHUB_API_URL", "http://example.com")
+REPO = os.getenv("GITHUB_REPOSITORY", "rh-ecosystem-edge/build-and-sign")
+DEBUG = False
+if "debug" in sys.argv:
+    DEBUG = True
 
-if not token:
+URL = API + f"/repos/{REPO}/pulls"
+DTK_REG = "quay.io/build-and-sign/pa-driver-toolkit"
+
+if not DEBUG and TOKEN == "test token":
     raise ValueError("GITHUB_TOKEN is missing!")
 
-# Function to update the DRIVER_PUBLISHED field and DRIVER_VERSION file
-def update_files(driver_version, kernel_version):
-    # Update DRIVER_PUBLISHED field in combined JSON
-    with open(matrix_json_file, "r") as f:
-        combined_data = json.load(f)
+def read_configfile(argsfile):
+    """
+        read key=value formatted config file into a dict()
+        argsfile:  filename to read
+        returns:
+           dict[key]=value
+    """
+    args={}
+    with open(argsfile, "r") as f:
+        all_lines = f.readlines()
 
-    for entry in combined_data:
-        if entry["DRIVER_VERSION"] == driver_version and entry["KERNEL_VERSION"] == kernel_version:
-            entry["DRIVER_PUBLISHED"] = "Y"
+    for l in all_lines:
+        try:
+            key,value = l.split("=")
+            args[key.strip()]=value.strip()
+        except ValueError:
+            pass
+
+    return args
+
+def call_git(*args, **kwargs):
+    """
+        wrapper for calls to git
+        *args: one or more strings to be arguements to the git command
+    """
+    if not DEBUG:
+        subprocess.run(["git"] + args, check=True)
+    else:
+        print(f"git {' '.join(args)}")
+
+# Function to update the DRIVER_PUBLISHED field and DRIVER_VERSION file
+def update_files(config, driver_version, kernel_version):
+    """ 
+        update the DRIVER_PUBLISHED field and DRIVER_VERSION file
+        config: dict of config key/value pairs
+    """
+    # Update DRIVER_PUBLISHED field in combined JSON
+    with open(MATRIX_JSON_FILE, "r") as f:
+        matrix_data = json.load(f)
+
+    for e in matrix_data:
+        if e["DRIVER_VERSION"] == driver_version and e["KERNEL_VERSION"] == kernel_version:
+            e["DRIVER_PUBLISHED"] = "Y"
             break
 
-    with open(matrix_json_file, "w") as f:
-        json.dump(combined_data, f, indent=4)
+    if DEBUG:
+        print(f"writing to {MATRIX_JSON_FILE} and {ARGSFILE}")
 
-    # Update argsfile
-    with open(argsfile, "r") as f:
-        lines = f.readlines()
+    with open(MATRIX_JSON_FILE, "w") as f:
+        json.dump(matrix_data, f, indent=4)
 
-    with open(argsfile, "w") as f:
-        for line in lines:
-            if line.startswith("DRIVER_VERSION="):
+    with open(ARGSFILE, "w") as f:
+        for k,v in config.items():
+            if k == "DRIVER_VERSION":
                 f.write(f"DRIVER_VERSION={driver_version}\n")
-            elif line.startswith("DTK_IMAGE="):
-                dtk_image = f"{dtk_reg}:{kernel_version}"
-                f.write(f"DTK_IMAGE={dtk_image}\n")                
+            elif k == "DTK_IMAGE":
+                dtk_image = f"{DTK_REG}:{kernel_version}"
+                f.write(f"DTK_IMAGE={dtk_image}\n")
             else:
-                f.write(line)
+                f.write(f"{k}={v}\n")
+
 
 # Function to create a new branch, commit changes, and push
-def create_branch_and_pr(driver_version, kernel_version):
+def create_branch_and_pr(config, driver_version, kernel_version):
+    """
+        create a new branch in the build-and-sign repo for the kernel-driver combination
+        and create a PR in it with updated versions of data/combined_output.json and argfile.conf
+        this should then trigger a Konflux job via the .tekton/pull-request pipeline
+    """
     branch_name = driver_version + "-" + kernel_version
-    subprocess.run(["git", "checkout", "-b", branch_name], check=True)
+
+    call_git("checkout", "-b", branch_name, check=True)
 
     # Config git identity
-    subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
-    subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+    call_git("config", "user.name", "github-actions[bot]")
+    call_git("config", "user.email", "github-actions[bot]@users.noreply.github.com")
 
     # Update files
-    update_files(driver_version, kernel_version)
+    update_files(config, driver_version, kernel_version)
 
     # Commit changes
-    subprocess.run(["git", "add", matrix_json_file, argsfile], check=True)
-    subprocess.run(["git", "commit", "-m", f"Update DRIVER_PUBLISHED status and KERNEL_VERSION for {driver_version}-{kernel_version}"], check=True)
+    call_git("add", MATRIX_JSON_FILE, ARGSFILE)
+    call_git("commit", "-m",
+             f"Update DRIVER_PUBLISHED status and KERNEL_VERSION for {driver_version}-{kernel_version}")
 
     # Push branch
-    subprocess.run(["git", "push", "origin", branch_name], check=True)
+    call_git("push", "origin", branch_name)
 
     # Create the PR for each commit
-    url = api +"/repos/rh-ecosystem-edge/build-and-sign/pulls"
     headers = {
-    "Accept": "application/vnd.github+json",
-    "Authorization": f"Bearer {token}",
-    "X-GitHub-Api-Version": "2022-11-28"            
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {TOKEN}",
+        "X-GitHub-Api-Version": "2022-11-28"
     }
     data = {
-    "title": f"Automated build-and-sign PR for {branch_name}",
-    "body": f"This PR was created automatically by GitHub Actions to trigger a new build and sign of {branch_name}.",
-    "head": f"{branch_name}",
-    "base": "main"
+        "title": f"Automated build-and-sign PR for {branch_name}",
+        "body": f"This PR was created automatically by GitHub Actions to \
+                    trigger a new build and sign of {branch_name}.",
+        "head": f"{branch_name}",
+        "base": "main"
      }
-    #print(f"REQUEST: {title} | Headers: {headers} | Data: {data} | URL: {url}")
-    pr = requests.post(url, headers=headers, json=data)
-    if pr.status_code == 201:
-       print(pr.json)
+    if not DEBUG:
+        pr = requests.post(URL, headers=headers, json=data, timeout=300)
+        if pr.status_code == 201:
+            print(pr.json)
+        else:
+            raise SystemExit(f'Error: Got Status {pr.status_code}.')
     else:
-       raise SystemExit(f'Error: Got Status {pr.status_code}.')
-    
+        print(f"REQUEST: {data} | Headers: {headers} | Data: {data} | URL: {URL}\n")
+
+
+def get_entries_to_process(config, combined_data):
+    """
+    Calculate which entries need to be (re)built and published
+    """
+    if DEBUG:
+        return combined_data
+
+    to_build = {combo['DRIVER_VERSION'] + "-" + combo['KERNEL_VERSION']: combo
+                                    for combo in combined_data}
+
+    repo_url = config["UPLOAD_ARTIFACT_REPO_API"]
+    response = call_gitlab(repo_url)
+
+    repo_files = [file['name'] for file in response]
+
+    kmod_name = config['DRIVER_VENDOR']
+    kmod_name_len = len(kmod_name)+1
+    for file in repo_files:
+        if file.startswith(kmod_name):
+            out=file[kmod_name_len:-7]
+            if to_build.get(out):
+                print(f"already built {out}")
+                del to_build[out]
+
+    return to_build.values()
+
+
+def call_gitlab(repo_url):
+    """
+        make a gitlab api call and returns the raw json it gets back
+    """
+    headers = {
+        "Accept": "*/*",
+        "PRIVATE-TOKEN": ARTIFACT_TOKEN,
+    }
+    pr = requests.get(repo_url, headers=headers, timeout=300)
+    if pr.status_code > 299:
+        raise SystemExit(f'Error: Got Status {pr.status_code} from {repo_url}.')
+
+    return pr.json()
+
+
 # Main script
 if __name__ == "__main__":
-    # Load current combined JSON data
-    with open(matrix_json_file, "r") as f:
-        combined_data = json.load(f)
+    config_dict = read_configfile(ARGSFILE)
 
-    # Find entries with DRIVER_PUBLISHED = "N"
-    entries_to_process = [entry for entry in combined_data if entry.get("DRIVER_PUBLISHED") == "N"]
+    # Load current combined JSON data
+    with open(MATRIX_JSON_FILE, "r") as matrix_fh:
+        combined_data = json.load(matrix_fh)
+
+    # Find entries ithat have not yet been built
+    entries_to_process = get_entries_to_process(config_dict, combined_data)
 
     if not entries_to_process:
-        print("No entries with DRIVER_PUBLISHED = 'N' found. Exiting.")
-        exit(0)
+        print("No entries found needing building. Exiting.")
+        sys.exit(0)
 
     # Process each entry
     for entry in entries_to_process:
-        driver_version = entry["DRIVER_VERSION"]
-        kernel_version = entry["KERNEL_VERSION"]
-        print(f"Processing entry: {driver_version}-{kernel_version}")
+        driver = entry["DRIVER_VERSION"]
+        kernel = entry["KERNEL_VERSION"]
+        print(f"Processing entry: {driver}-{kernel}")
 
         # Create a new branch, update files, and push changes
-        create_branch_and_pr(driver_version, kernel_version)
+        create_branch_and_pr(config_dict, driver, kernel)
