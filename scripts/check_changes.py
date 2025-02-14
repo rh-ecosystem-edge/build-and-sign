@@ -15,10 +15,13 @@ if "debug" in sys.argv:
     DEBUG = True
 
 URL = API + f"/repos/{REPO}/pulls"
-DTK_REG = "quay.io/build-and-sign/pa-driver-toolkit"
+#DTK_REG = "quay.io/build-and-sign/pa-driver-toolkit"
 
 if not DEBUG and TOKEN == "test token":
     raise ValueError("GITHUB_TOKEN is missing!")
+
+if not DEBUG and ARTIFACT_TOKEN == "gitlab token":
+    raise ValueError("ARTIFACT_TOKEN is missing!")
 
 def read_configfile(argsfile):
     """
@@ -71,12 +74,13 @@ def update_files(config, driver_version, kernel_version):
     with open(MATRIX_JSON_FILE, "w") as f:
         json.dump(matrix_data, f, indent=4)
 
+    dtk_reg = config['DTK_IMAGE'].split(":")[0]
     with open(ARGSFILE, "w") as f:
         for k,v in config.items():
             if k == "DRIVER_VERSION":
                 f.write(f"DRIVER_VERSION={driver_version}\n")
             elif k == "DTK_IMAGE":
-                dtk_image = f"{DTK_REG}:{kernel_version}"
+                dtk_image = f"{dtk_reg}:{kernel_version}"
                 f.write(f"DTK_IMAGE={dtk_image}\n")
             else:
                 f.write(f"{k}={v}\n")
@@ -142,7 +146,7 @@ def get_entries_to_process(config, combined_data):
                                     for combo in combined_data}
 
     repo_url = config["UPLOAD_ARTIFACT_REPO_API"]
-    response = call_gitlab(repo_url)
+    response = call_gitlab(repo_url, page=True)
 
     repo_files = [file['name'] for file in response]
 
@@ -158,19 +162,37 @@ def get_entries_to_process(config, combined_data):
     return to_build.values()
 
 
-def call_gitlab(repo_url):
+def call_gitlab(repo_url, page=False):
     """
         make a gitlab api call and returns the raw json it gets back
+        if page=True deal with multiple potential pages coming back from the api
     """
+    orig_url = repo_url
+
     headers = {
         "Accept": "*/*",
         "PRIVATE-TOKEN": ARTIFACT_TOKEN,
     }
-    pr = requests.get(repo_url, headers=headers, timeout=300)
-    if pr.status_code > 299:
-        raise SystemExit(f'Error: Got Status {pr.status_code} from {repo_url}.')
+    if page is True:
+        repo_url+="?per_page=50"
 
-    return pr.json()
+    all_results=[]
+    page_number = 1
+    while True:
+        pr = requests.get(repo_url, headers=headers, timeout=300)
+
+        if pr.status_code > 299:
+            raise SystemExit(f'Error: Got Status {pr.status_code} from {repo_url}')
+        all_results += pr.json()
+
+        ## if not paging OR this is the last page, then break
+        if page is False or pr.headers.get('x-page',1) >= pr.headers.get('x-total-pages',0):
+            break
+
+        page_number += 1
+        repo_url =f"{orig_url}?per_page=50&page={page_number}"
+
+    return all_results
 
 
 # Main script
