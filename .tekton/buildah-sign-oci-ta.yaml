@@ -145,6 +145,12 @@ spec:
       description: The name of the ConfigMap to read CA bundle data from.
       type: string
       default: trusted-ca
+    - name: driverdir_pattern
+      type: string
+      description: What pattern should be searched within the layer where built drivers are e.g. /mydrivers
+    - name: AWS_KMS_SECRET
+      type: string
+      description: Secret with AWS auth and KMS settings
   results:
     - name: IMAGE_DIGEST
       description: Digest of the image just built
@@ -575,6 +581,15 @@ spec:
         capabilities:
           add:
             - SETFCAP
+    - name: sign-files
+      image: quay.io/redhat-user-workloads/partners-kmod-accel-tenant/klerk:4e547a87899eb0f2f83686e9d84d822a667104d4
+      workingDir: /var/workdir
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+      script: |
+        openssl --version
+        which sign-file
     - name: icm
       image: quay.io/konflux-ci/icm-injection-scripts:latest@sha256:b8e63df7878bc97ceda91730786b51f220b78f0c8ca0b3adc7b685d35ccf339d
       workingDir: /var/workdir
