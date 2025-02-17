@@ -597,21 +597,21 @@ spec:
         operator: in
         values:
         - "false"
-    - name: sign-modules
-      taskRef:
-        name: sign-modules 
-      workspaces:
-        - name: drivers-dir
-          workspace: shared-workspace
-      params:
-        - name: container-build-image
-          value: $(params.output-image)
-        - name: built-dir
-          value: "/opt/drivers"
-        - name: containerimage
-          value: $(params.output-image)
-      runAfter:
-      - build-container
+          #    - name: sign-modules
+          #      taskRef:
+          #        name: sign-modules 
+          #      workspaces:
+          #        - name: drivers-dir
+          #          workspace: shared-workspace
+          #      params:
+          #        - name: container-build-image
+          #          value: $(params.output-image)
+          #        - name: built-dir
+          #          value: "/opt/drivers"
+          #        - name: containerimage
+          #          value: $(params.output-image)
+          #      runAfter:
+          #      - build-container
     - name: upload-signed-drivers
       taskRef:
         name: upload-to-git
