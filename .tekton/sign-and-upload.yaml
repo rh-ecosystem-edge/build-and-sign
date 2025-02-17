@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: upload-to-git
+  name: sign-and-upload 
 spec:
   params:
     - name: gitrepo
@@ -25,7 +25,7 @@ spec:
     - name: drivers-dir
       description: Shared directory with signed drivers
   steps:
-    - name: copy-signed-driver 
+    - name: copy-driver
       image: registry.redhat.io/ubi9/skopeo@sha256:713f01d02801350e32a6bce4285bbf93a8032444c4cac5d6e00e639b342dc0f0
       script: |
         dnf -y install file
@@ -44,7 +44,10 @@ spec:
                         fi
                     fi
                  done
-        
+    - name: sign-drivers
+      image: quay.io/redhat-user-workloads/partners-kmod-accel-tenant/klerk:4e547a87899eb0f2f83686e9d84d822a667104d4
+      script: |
+      ls -l $(workspaces.drivers-dir.path)/
     - name: git-upload-lfs
       image: registry.access.redhat.com/ubi9/toolbox@sha256:7ea2a799a9cf6b0111f16418039ce0b7b30f5f764747960ce3a1dea4d89b78d8
       env:
@@ -55,7 +58,6 @@ spec:
               key: "PRIVATE_GITLAB_TOKEN"
       script: |
         echo "SHARED DIR: $(workspaces.drivers-dir.path)"
-        ls -l $(workspaces.drivers-dir.path)/
         sudo dnf -y install git-lfs
         git clone https://gitlab-ci-token:${PRIVATE_GITLAB_TOKEN}@$(params.gitrepo) drivers && \
         cd drivers && \

@@ -230,17 +230,13 @@ spec:
       - prefetch-dependencies
       taskRef:
         params:
-        - name: url
-          value: https://github.com/rh-ecosystem-edge/build-and-sign.git
-        - name: revision
-          value: sign-konflux-task
-        - name: pathInRepo
-          value: .tekton/buildah-sign-oci-ta.yaml
-        resolver: git
-      workspaces:
-        - name: drivers-dir
-          workspace: shared-workspace
-          
+        - name: name
+          value: buildah-oci-ta
+        - name: bundle
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta@sha256:11b9ce26fd2933ccc81ca3f983e094ec54326a2e0aaf8bdcc4c0b8fea1a42c53
+        - name: kind
+          value: task
+        resolver: bundles
       when:
       - input: $(tasks.init.results.build)
         operator: in
@@ -613,9 +609,9 @@ spec:
           #          value: $(params.output-image)
           #      runAfter:
           #      - build-container
-    - name: upload-signed-drivers
+    - name: sign-and-upload
       taskRef:
-        name: upload-to-git
+        name: sign-and-upload 
       workspaces:          
         - name: drivers-dir
           workspace: shared-workspace
