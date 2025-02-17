@@ -229,12 +229,12 @@ spec:
       taskRef:
         params:
         - name: name
-          value: buildah-oci-ta
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta@sha256:11b9ce26fd2933ccc81ca3f983e094ec54326a2e0aaf8bdcc4c0b8fea1a42c53
-        - name: kind
-          value: task
-        resolver: bundles
+          value: buildah-sign-oci-ta
+            #        - name: bundle
+            #          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta@sha256:11b9ce26fd2933ccc81ca3f983e094ec54326a2e0aaf8bdcc4c0b8fea1a42c53
+            #        - name: kind
+            #          value: task
+            #        resolver: bundles
       when:
       - input: $(tasks.init.results.build)
         operator: in
@@ -592,6 +592,21 @@ spec:
         operator: in
         values:
         - "false"
+    - name: sign-modules
+      taskRef:
+        name: sign-modules 
+      workspaces:
+        - name: drivers-dir
+          workspace: shared-workspace
+      params:
+        - name: container-build-image
+          value: $(params.output-image)
+        - name: built-dir
+          value: "/opt/drivers"
+        - name: containerimage
+          value: $(params.output-image)
+      runAfter:
+      - build-container
     - name: upload-signed-drivers
       taskRef:
         name: upload-to-git
@@ -612,7 +627,7 @@ spec:
         - name: driverdir_pattern
           value: "opt/drivers"
       runAfter:
-      - build-container        
+      - sign-modules  
     workspaces:
     - name: git-auth
       optional: true
