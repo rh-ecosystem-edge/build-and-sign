@@ -632,7 +632,7 @@ spec:
         - name: driverdir_pattern
           value: "opt/drivers"
       runAfter:
-      - sign-modules  
+      - build-container  
     workspaces:
     - name: git-auth
       optional: true
