@@ -587,7 +587,7 @@ spec:
           name: varlibcontainers
       script: |
         openssl --version
-        which sign-file
+        ls -l /var/workdir/opt/ 
     - name: icm
       image: quay.io/konflux-ci/icm-injection-scripts:latest@sha256:b8e63df7878bc97ceda91730786b51f220b78f0c8ca0b3adc7b685d35ccf339d
       workingDir: /var/workdir
