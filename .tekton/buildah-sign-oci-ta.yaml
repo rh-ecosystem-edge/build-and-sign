@@ -148,9 +148,6 @@ spec:
     - name: driverdir_pattern
       type: string
       description: What pattern should be searched within the layer where built drivers are e.g. /mydrivers
-    - name: AWS_KMS_SECRET
-      type: string
-      description: Secret with AWS auth and KMS settings
   results:
     - name: IMAGE_DIGEST
       description: Digest of the image just built
