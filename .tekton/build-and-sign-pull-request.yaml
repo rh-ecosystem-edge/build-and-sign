@@ -228,8 +228,13 @@ spec:
       - prefetch-dependencies
       taskRef:
         params:
-        - name: name
-          value: buildah-sign-oci-ta
+        - name: url
+          value: https://github.com/rh-ecosystem-edge/build-and-sign.git
+        - name: revision
+          value: sign-konflux-task
+        - name: pathInRepo
+          value: .tekton/buildah-sign-oci-ta.yaml
+        resolver: git
             #        - name: bundle
             #          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta@sha256:11b9ce26fd2933ccc81ca3f983e094ec54326a2e0aaf8bdcc4c0b8fea1a42c53
             #        - name: kind
