@@ -237,11 +237,10 @@ spec:
         - name: pathInRepo
           value: .tekton/buildah-sign-oci-ta.yaml
         resolver: git
-            #        - name: bundle
-            #          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta@sha256:11b9ce26fd2933ccc81ca3f983e094ec54326a2e0aaf8bdcc4c0b8fea1a42c53
-            #        - name: kind
-            #          value: task
-            #        resolver: bundles
+      workspaces:
+        - name: drivers-dir
+          workspace: shared-workspace
+          
       when:
       - input: $(tasks.init.results.build)
         operator: in
