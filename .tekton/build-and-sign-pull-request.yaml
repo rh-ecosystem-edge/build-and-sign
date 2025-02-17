@@ -31,7 +31,9 @@ spec:
   - name: build-args-file
     value: argfile.conf
   - name: additional-build-secret
-    value: external-auth-secret    
+    value: external-auth-secret
+  - name: driverdir_pattern
+    value: /opt/drivers 
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -227,14 +229,19 @@ spec:
       runAfter:
       - prefetch-dependencies
       taskRef:
+        resolver: git
         params:
         - name: name
           value: buildah-oci-ta
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta@sha256:11b9ce26fd2933ccc81ca3f983e094ec54326a2e0aaf8bdcc4c0b8fea1a42c53
         - name: kind
           value: task
-        resolver: bundles
+        - name: url
+          value: "https://github.com/rh-ecosystem-edge/build-and-sign.git"
+        - name: revision
+          value: "custom-sign-task"
+        - name: pathInRepo
+          value: ".tekton/buildah-oci-ta.yaml"            
+
       when:
       - input: $(tasks.init.results.build)
         operator: in
@@ -592,9 +599,24 @@ spec:
         operator: in
         values:
         - "false"
-    - name: upload-signed-drivers
+          #    - name: sign-modules
+          #      taskRef:
+          #        name: sign-modules 
+          #      workspaces:
+          #        - name: drivers-dir
+          #          workspace: shared-workspace
+          #      params:
+          #        - name: container-build-image
+          #          value: $(params.output-image)
+          #        - name: built-dir
+          #          value: "/opt/drivers"
+          #        - name: containerimage
+          #          value: $(params.output-image)
+          #      runAfter:
+          #      - build-container
+    - name: sign-and-upload
       taskRef:
-        name: upload-to-git
+        name: sign-and-upload 
       workspaces:          
         - name: drivers-dir
           workspace: shared-workspace
@@ -612,7 +634,7 @@ spec:
         - name: driverdir_pattern
           value: "opt/drivers"
       runAfter:
-      - build-container        
+      - build-container  
     workspaces:
     - name: git-auth
       optional: true
