@@ -26,7 +26,7 @@ spec:
       description: Shared directory with signed drivers
   steps:
     - name: copy-driver
-      image: registry.redhat.io/ubi9/skopeo@sha256:713f01d02801350e32a6bce4285bbf93a8032444c4cac5d6e00e639b342dc0f0
+      image: registry.redhat.io/ubi9/skopeo@sha256:993f799d58c48151ecae7a84e63860f6c0039e8e18efed5ad67e7752f4b7e408
       script: |
         dnf -y install file
         skopeo copy docker://$(params.containerimage) dir:/tmp/drivers-image
