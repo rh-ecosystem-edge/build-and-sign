@@ -4,6 +4,8 @@ import json
 import subprocess
 import requests
 
+from readconfig import call_gitlab
+
 MATRIX_JSON_FILE = "data/combined_output.json"
 ARGSFILE = "argfile.conf"
 TOKEN = os.getenv("TOKEN", "test token")
@@ -146,7 +148,7 @@ def get_entries_to_process(config, combined_data):
                                     for combo in combined_data}
 
     repo_url = config["UPLOAD_ARTIFACT_REPO_API"]
-    response = call_gitlab(repo_url, page=True)
+    response = call_gitlab(repo_url, page=True, token=ARTIFACT_TOKEN)
 
     repo_files = [file['name'] for file in response]
 
@@ -161,38 +163,6 @@ def get_entries_to_process(config, combined_data):
 
     return to_build.values()
 
-
-def call_gitlab(repo_url, page=False):
-    """
-        make a gitlab api call and returns the raw json it gets back
-        if page=True deal with multiple potential pages coming back from the api
-    """
-    orig_url = repo_url
-
-    headers = {
-        "Accept": "*/*",
-        "PRIVATE-TOKEN": ARTIFACT_TOKEN,
-    }
-    if page is True:
-        repo_url+="?per_page=50"
-
-    all_results=[]
-    page_number = 1
-    while True:
-        pr = requests.get(repo_url, headers=headers, timeout=300)
-
-        if pr.status_code > 299:
-            raise SystemExit(f'Error: Got Status {pr.status_code} from {repo_url}')
-        all_results += pr.json()
-
-        ## if not paging OR this is the last page, then break
-        if page is False or pr.headers.get('x-page',1) >= pr.headers.get('x-total-pages',0):
-            break
-
-        page_number += 1
-        repo_url =f"{orig_url}?per_page=50&page={page_number}"
-
-    return all_results
 
 
 # Main script
