@@ -2,17 +2,45 @@ import json
 import os
 import md5mod
 import urllib.request
-import read_argfile
+import requests
+
+def read_key_value_file(filename="argfile.conf"):
+    data = {}
+    with open(filename, "r") as file:
+        for line in file:
+            line = line.strip()
+            if line and "=" in line:
+                key, value = line.split("=", 1)
+                data[key.strip()] = value.strip()
+    return data
+
+def download_file(url, save_path):
+    try:
+        urllib.request.urlretrieve(url, save_path)
+        return save_path
+    except Exception as e:
+        return f"Error download file: {e}"
+
+def fetch_dtk_tags():
+    dtk_registry_api = "https://quay.io/v1/repositories/build-and-sign/pa-driver-toolkit/tags"
+    #  Get DTK tags
+    response = requests.get(dtk_registry_api)
+    kernel_json = (response.json())
+    kernel_list = "data/kernel-list.json"
+    # Save tags in file
+    with open(kernel_list, "w") as output:
+        json.dump(kernel_json, output)
 
 # Download driver_info_file from argfile.conf
-config = read_argfile.read_key_value_file()
+config = read_key_value_file()
 DRIVER_VER_JSON = config.get("DRIVER_VER_JSON", "Key 'DRIVER_VER_JSON' not found.")
 download_dir = "vendor"
 os.makedirs(download_dir, exist_ok=True)
 
 # Sources for kernel versions and driver versions
-driver_info_file = read_argfile.download_file(DRIVER_VER_JSON, os.path.join(download_dir, os.path.basename(DRIVER_VER_JSON))) if DRIVER_VER_JSON.startswith("http") else "Invalid URL"
+driver_info_file = download_file(DRIVER_VER_JSON, os.path.join(download_dir, os.path.basename(DRIVER_VER_JSON))) if DRIVER_VER_JSON.startswith("http") else "Invalid URL"
 #driver_info_file = "data/driver-list.json"
+fetch_dtk_tags()
 kernel_versions_file = "data/kernel-list.json"
 matrix_file = "data/combined_output.json"
 
