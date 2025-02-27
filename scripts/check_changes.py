@@ -3,9 +3,9 @@ import sys
 import json
 import subprocess
 import requests
+import read_argfile
 
 MATRIX_JSON_FILE = "data/combined_output.json"
-ARGSFILE = "argfile.conf"
 TOKEN = os.getenv("TOKEN", "test token")
 ARTIFACT_TOKEN = os.getenv("ARTIFACT_TOKEN", "gitlab token")
 API = os.getenv("GITHUB_API_URL", "http://example.com")
@@ -22,26 +22,6 @@ if not DEBUG and TOKEN == "test token":
 
 if not DEBUG and ARTIFACT_TOKEN == "gitlab token":
     raise ValueError("ARTIFACT_TOKEN is missing!")
-
-def read_configfile(argsfile):
-    """
-        read key=value formatted config file into a dict()
-        argsfile:  filename to read
-        returns:
-           dict[key]=value
-    """
-    args={}
-    with open(argsfile, "r") as f:
-        all_lines = f.readlines()
-
-    for l in all_lines:
-        try:
-            key,value = l.split("=")
-            args[key.strip()]=value.strip()
-        except ValueError:
-            pass
-
-    return args
 
 def call_git(*args, **kwargs):
     """
@@ -197,7 +177,7 @@ def call_gitlab(repo_url, page=False):
 
 # Main script
 if __name__ == "__main__":
-    config_dict = read_configfile(ARGSFILE)
+    config_dict = read_argfile.read_key_value_file()
 
     # Load current combined JSON data
     with open(MATRIX_JSON_FILE, "r") as matrix_fh:
