@@ -82,6 +82,14 @@ def create_branch_and_pr(config, driver_version, kernel_version):
 
     call_git("checkout", "-B", branch_name, check=True)
 
+    breakpoint()
+    try:
+        ## try and update from the upstream repo
+        call_git("pull", "origin", "--rebase", branch_name)
+    except subprocess.CalledProcessError:
+        ## probably means the branch dosn't exist there which is fine
+        pass 
+
     # Config git identity
     call_git("config", "user.name", "github-actions[bot]")
     call_git("config", "user.email", "github-actions[bot]@users.noreply.github.com")
