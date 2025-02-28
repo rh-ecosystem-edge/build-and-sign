@@ -5,6 +5,10 @@ import subprocess
 import requests
 import read_argfile
 
+import datetime
+
+
+ARGSFILE="argfile.conf"
 MATRIX_JSON_FILE = "data/combined_output.json"
 TOKEN = os.getenv("TOKEN", "test token")
 ARTIFACT_TOKEN = os.getenv("ARTIFACT_TOKEN", "gitlab token")
@@ -29,7 +33,7 @@ def call_git(*args, **kwargs):
         *args: one or more strings to be arguements to the git command
     """
     if not DEBUG:
-        subprocess.run(["git"] + args, check=True)
+        subprocess.run(["git"] + list(args), check=True)
     else:
         print(f"git {' '.join(args)}")
 
@@ -56,6 +60,7 @@ def update_files(config, driver_version, kernel_version):
 
     dtk_reg = config['DTK_IMAGE'].split(":")[0]
     with open(ARGSFILE, "w") as f:
+        f.write(f"TIMESTAMP: {datetime.datetime.now()}\n")
         for k,v in config.items():
             if k == "DRIVER_VERSION":
                 f.write(f"DRIVER_VERSION={driver_version}\n")
@@ -75,7 +80,7 @@ def create_branch_and_pr(config, driver_version, kernel_version):
     """
     branch_name = driver_version + "-" + kernel_version
 
-    call_git("checkout", "-b", branch_name, check=True)
+    call_git("checkout", "-B", branch_name, check=True)
 
     # Config git identity
     call_git("config", "user.name", "github-actions[bot]")
@@ -92,6 +97,7 @@ def create_branch_and_pr(config, driver_version, kernel_version):
     # Push branch
     call_git("push", "origin", branch_name)
 
+    return
     # Create the PR for each commit
     headers = {
         "Accept": "application/vnd.github+json",
@@ -121,6 +127,7 @@ def get_entries_to_process(config, combined_data):
     """
     if DEBUG:
         return combined_data
+    return combined_data
 
     to_build = {combo['DRIVER_VERSION'] + "-" + combo['KERNEL_VERSION']: combo
                                     for combo in combined_data}
@@ -177,7 +184,7 @@ def call_gitlab(repo_url, page=False):
 
 # Main script
 if __name__ == "__main__":
-    config_dict = read_argfile.read_key_value_file()
+    config_dict = read_argfile.read_key_value_file(ARGSFILE)
 
     # Load current combined JSON data
     with open(MATRIX_JSON_FILE, "r") as matrix_fh:
