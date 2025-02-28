@@ -60,7 +60,7 @@ def update_files(config, driver_version, kernel_version):
 
     dtk_reg = config['DTK_IMAGE'].split(":")[0]
     with open(ARGSFILE, "w") as f:
-        f.write(f"TIMESTAMP: {datetime.datetime.now()}\n")
+        f.write(f"TIMESTAMP={datetime.datetime.now()}\n")
         for k,v in config.items():
             if k == "DRIVER_VERSION":
                 f.write(f"DRIVER_VERSION={driver_version}\n")
