@@ -82,13 +82,13 @@ def create_branch_and_pr(config, driver_version, kernel_version):
 
     call_git("checkout", "-B", branch_name, check=True)
 
-    breakpoint()
-    try:
-        ## try and update from the upstream repo
-        call_git("pull", "origin", "--rebase", branch_name)
-    except subprocess.CalledProcessError:
-        ## probably means the branch dosn't exist there which is fine
-        pass 
+    #breakpoint()
+    #try:
+    #    ## try and update from the upstream repo
+    #    call_git("pull", "origin", "--rebase", branch_name)
+    #except subprocess.CalledProcessError:
+    #    ## probably means the branch dosn't exist there which is fine
+    #    pass 
 
     # Config git identity
     call_git("config", "user.name", "github-actions[bot]")
@@ -103,7 +103,7 @@ def create_branch_and_pr(config, driver_version, kernel_version):
              f"Update DRIVER_PUBLISHED status and KERNEL_VERSION for {driver_version}-{kernel_version}")
 
     # Push branch
-    call_git("push", "origin", branch_name)
+    call_git("push", "--force", "origin", branch_name)
 
     return
     # Create the PR for each commit
