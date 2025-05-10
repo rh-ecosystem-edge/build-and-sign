@@ -33,7 +33,7 @@ spec:
   - name: additional-build-secret
     value: external-auth-secret
   - name: driverdir_pattern
-    value: /opt/drivers 
+    value: /opt/drivers
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -219,7 +219,7 @@ spec:
       - name: BUILD_ARGS_FILE
         value: $(params.build-args-file)
       - name: ADD_CAPABILITIES
-        value: "SYS_ADMIN"
+        value: SYS_ADMIN
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
@@ -229,19 +229,18 @@ spec:
       runAfter:
       - prefetch-dependencies
       taskRef:
-        resolver: git
         params:
         - name: name
           value: buildah-oci-ta
         - name: kind
           value: task
         - name: url
-          value: "https://github.com/rh-ecosystem-edge/build-and-sign.git"
+          value: https://github.com/rh-ecosystem-edge/build-and-sign.git
         - name: revision
-          value: "custom-sign-task"
+          value: custom-sign-task
         - name: pathInRepo
-          value: ".tekton/buildah-oci-ta.yaml"            
-
+          value: .tekton/buildah-oci-ta.yaml
+        resolver: git
       when:
       - input: $(tasks.init.results.build)
         operator: in
@@ -438,7 +437,7 @@ spec:
         value:
         - $(params.build-args[*])
       - name: BUILD_ARGS_FILE
-        value: $(params.build-args-file)          
+        value: $(params.build-args-file)
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
@@ -599,52 +598,38 @@ spec:
         operator: in
         values:
         - "false"
-          #    - name: sign-modules
-          #      taskRef:
-          #        name: sign-modules 
-          #      workspaces:
-          #        - name: drivers-dir
-          #          workspace: shared-workspace
-          #      params:
-          #        - name: container-build-image
-          #          value: $(params.output-image)
-          #        - name: built-dir
-          #          value: "/opt/drivers"
-          #        - name: containerimage
-          #          value: $(params.output-image)
-          #      runAfter:
-          #      - build-container
     - name: sign-and-upload
-      taskRef:
-        name: sign-and-upload 
-      workspaces:          
-        - name: drivers-dir
-          workspace: shared-workspace
       params:
-        - name: gitrepo
-          value: "gitlab.com/ebelarte/artifact-storage.git"
-        - name: remotebranch
-          value: "main"
-        - name: remotedir
-          value: "/opt/drivers"
-        - name: driver_vendor
-          value: "opengpu-nvidia"
-        - name: containerimage
-          value: $(params.output-image)
-        - name: driverdir_pattern
-          value: "opt/drivers"
+      - name: gitrepo
+        value: gitlab.com/ebelarte/artifact-storage.git
+      - name: remotebranch
+        value: main
+      - name: remotedir
+        value: /opt/drivers
+      - name: driver_vendor
+        value: opengpu-nvidia
+      - name: containerimage
+        value: $(params.output-image)
+      - name: driverdir_pattern
+        value: opt/drivers
       runAfter:
-      - build-container  
+      - build-container
+      taskRef:
+        name: sign-and-upload
+      workspaces:
+      - name: drivers-dir
+        workspace: shared-workspace
     workspaces:
     - name: git-auth
       optional: true
     - name: netrc
       optional: true
-  taskRunTemplate: {}
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-build-and-sign
   workspaces:
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
-  - name: shared-workspace
-    emptyDir: {}
+  - emptyDir: {}
+    name: shared-workspace
 status: {}
