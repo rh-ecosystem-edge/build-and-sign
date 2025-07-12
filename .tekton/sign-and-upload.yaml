@@ -50,7 +50,7 @@ spec:
         ls -l $(workspaces.drivers-dir.path)/
 
     - name: git-upload-lfs
-      image: registry.access.redhat.com/ubi9/toolbox@sha256:7ea2a799a9cf6b0111f16418039ce0b7b30f5f764747960ce3a1dea4d89b78d8
+      image: registry.access.redhat.com/ubi9/toolbox@sha256:c0ec60d78e88dc59e4c980bc8042f998e797a5b9a170a92a484f65f661f14cd2
       env:
         - name: PRIVATE_GITLAB_TOKEN
           valueFrom:
